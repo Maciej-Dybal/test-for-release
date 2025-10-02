@@ -52,11 +52,10 @@ jobs:
       - name: Build Storybook
         run: npm run build-storybook -o storybook-static
 
-      - name: Deploy prebuilt Storybook
-        run: |
-          npx vercel deploy storybook-static \
-            --prod \
-            --prebuilt \
-            --confirm \
-            --token ${{ secrets.VERCEL_TOKEN }} \
-            --name "storybook-${{ env.TAG_NAME }}-${{ env.DEPLOY_ENV }}"
+      - name: Deploy Storybook
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          prod: ${{ env.DEPLOY_ENV == 'production' }}
