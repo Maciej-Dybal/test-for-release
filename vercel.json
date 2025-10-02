@@ -5,5 +5,4 @@
 			"destination": "/storybook/:tag/:path*"
 		}
 	],
-	"vercel-build": false
 }
