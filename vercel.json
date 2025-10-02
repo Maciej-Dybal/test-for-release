@@ -4,5 +4,6 @@
 			"source": "/storybook/:tag/:path*",
 			"destination": "/storybook/:tag/:path*"
 		}
-	]
+	],
+	"vercel-build": false
 }
