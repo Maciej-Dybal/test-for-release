@@ -1,4 +1,4 @@
-name: Manual Storybook Release
+name: Deploy Storybook by Tag
 
 on:
   workflow_dispatch:
@@ -14,14 +14,19 @@ on:
         options:
           - staging
           - production
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  deploy:
+  deploy-storybook:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0   # needed to fetch tags
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -31,31 +36,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set tag version
+      - name: Determine TAG_NAME
         if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-      - name: Set tag from push
+      - name: Determine TAG_NAME from push
         if: github.event_name == 'push'
         run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Set deployment environment
+      - name: Determine DEPLOY_ENV
         if: github.event_name == 'workflow_dispatch'
         run: echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-      - name: Default deployment environment
+      - name: Default DEPLOY_ENV for push
         if: github.event_name == 'push'
         run: echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
 
-      - name: Checkout tag (for push triggers)
-        if: github.event_name == 'push'
+      - name: Checkout tag
         run: git checkout $TAG_NAME
 
       - name: Build Storybook
         run: npm run build-storybook -o storybook-static
 
-      - name: Deploy Storybook
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          prod: ${{ env.DEPLOY_ENV == 'production' }}
+      - name: Deploy to Vercel
+        run: |
+          npx vercel deploy storybook-static \
+            --prod \
+            --token ${{ secrets.VERCEL_TOKEN }} \
+            --name storybook-$TAG_NAME-$DEPLOY_ENV \
+            --confirm \
+            --prebuilt
