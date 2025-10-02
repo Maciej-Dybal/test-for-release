@@ -53,5 +53,10 @@ jobs:
         run: npm run build-storybook -o storybook-static
 
       - name: Deploy prebuilt Storybook
-        run: npx vercel deploy storybook-static --prod --confirm --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --name ${{ secrets.VERCEL_PROJECT_ID }} --alias storybook/${{ env.TAG_NAME }}-${{ env.DEPLOY_ENV }}
-
+        run: |
+          npx vercel deploy storybook-static \
+            --prod \
+            --prebuilt \
+            --confirm \
+            --token ${{ secrets.VERCEL_TOKEN }} \
+            --name "storybook-${{ env.TAG_NAME }}-${{ env.DEPLOY_ENV }}"
