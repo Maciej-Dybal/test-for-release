@@ -20,7 +20,7 @@ export const Page: React.FC = () => {
       />
 
       <section className="storybook-page">
-        <h2>Pages in Storybook Version v1.1.0</h2>
+        <h2>Pages in Storybook Version v1.2.0</h2>
         <p>
           We recommend building UIs with a{' '}
           <a href="https://componentdriven.org" target="_blank" rel="noopener noreferrer">
