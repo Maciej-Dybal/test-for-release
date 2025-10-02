@@ -1,0 +1,8 @@
+{
+	"rewrites": [
+		{
+			"source": "/storybook/:tag/:path*",
+			"destination": "/storybook/:tag/:path*"
+		}
+	]
+}
