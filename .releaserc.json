@@ -18,7 +18,12 @@
 				"preset": "conventionalcommits"
 			}
 		],
-		"./plugins/semantic-release-fragments",
+		[
+			"@semantic-release/exec",
+			{
+				"prepareCmd": "NEXT_VERSION=${nextRelease.version} node plugins/semantic-release-fragments.js"
+			}
+		],
 		[
 			"@semantic-release/npm",
 			{
