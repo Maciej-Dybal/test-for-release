@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "storybook": "storybook dev -p 6006",
+		"build:types": "tsc ",
     "build-storybook": "storybook build",
     "semantic-release": "semantic-release"
   },
