@@ -1,8 +1,4 @@
-name: Node.js Package
-
-# on:
-#   release:
-#     types: [created]
+name: Release
 
 on:
   push:
@@ -26,14 +22,19 @@ jobs:
           name: storybook-build
           path: storybook-static
 
-  publish-gpr:
+  release:
     needs: build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
+      contents: write
       packages: write
-      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -44,6 +45,7 @@ jobs:
           name: storybook-build
           path: storybook-static
       - run: npm ci
-      - run: npm publish --registry=https://npm.pkg.github.com/
+      - run: npx semantic-release
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
