@@ -155,36 +155,30 @@ async function prepare(_pluginConfig, context) {
 
 	const fragmentsToDelete = new Set();
 
+	// Process commits to determine what categories we need
+	const commitsInRelease = [];
 	for (const commit of commits) {
 		const parsedCommit = parseCommit(commit);
-
-		if (!parsedCommit) continue; // Skip non-conventional commits
-
-		const category = getCategory(parsedCommit);
-		if (!category) continue; // Skip other commit types
-
-		const component = parsedCommit.scope || "Uncategorized";
-
-		// Initialize component array if needed
-		if (!changelogData[category][component]) {
-			changelogData[category][component] = [];
+		if (parsedCommit) {
+			const category = getCategory(parsedCommit);
+			if (category) {
+				commitsInRelease.push({
+					...parsedCommit,
+					category
+				});
+			}
 		}
-
-		// Add commit info
-		changelogData[category][component].push({
-			subject: parsedCommit.subject,
-			content: null,
-		});
 	}
 
-	// Process existing fragments (not based on commits, just copy/paste)
+	// Process existing fragments based on commit categories
 	for (const fragment of existingFragments) {
-		if (fragment.content) {
-			const component = fragment.component || "Uncategorized";
+		if (fragment.content && fragment.component) {
+			const component = fragment.component;
 
-			// For fragments, we'll put them in Features by default
-			// (fragments are usually about new functionality)
-			const category = "Features";
+			// Find if there's a commit that could relate to this fragment
+			// For now, we'll use the first valid category from commits in this release
+			// You could extend this logic to match fragments to specific commits
+			const category = commitsInRelease.length > 0 ? commitsInRelease[0].category : "Features";
 
 			if (!changelogData[category][component]) {
 				changelogData[category][component] = [];
