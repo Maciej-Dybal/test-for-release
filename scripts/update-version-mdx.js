@@ -5,7 +5,7 @@ const path = require('path');
 
 /**
  * Custom script to format the changelog for Version.mdx
- * This script converts semantic-release changelog format to the custom MDX format
+ * Handles both semantic-release automatic notes and manual Version.mdx content from commits
  */
 
 const versionMdxPath = path.join(__dirname, '../stories/01. Docs/Version.mdx');
@@ -26,23 +26,58 @@ if (!nextVersion || !releaseNotes) {
   process.exit(0);
 }
 
-// Format the new entry - convert release notes to bullet points
-let formattedNotes = releaseNotes
-  .replace(/^# .*?\n/, '') // Remove main heading
+// Parse release notes to extract manual Version.mdx content
+const lines = releaseNotes.split('\n');
+let manualContent = '';
+let automaticNotes = [];
+let inVersionMdxSection = false;
+
+for (const line of lines) {
+  if (line.includes('Version.mdx:')) {
+    inVersionMdxSection = true;
+    continue;
+  }
+  
+  if (inVersionMdxSection && line.trim().startsWith('-')) {
+    manualContent += line + '\n';
+  } else {
+    inVersionMdxSection = false;
+    if (line.trim() && !line.includes('Version.mdx:') && !line.startsWith('#')) {
+      automaticNotes.push(line);
+    }
+  }
+}
+
+// Format automatic release notes
+let formattedNotes = automaticNotes
+  .join('\n')
   .replace(/^## .*?\n/gm, '') // Remove section headings
   .replace(/^\* /gm, '- ') // Convert asterisk bullets to dash bullets
   .trim();
 
-// If no formatted notes, add a generic entry
-if (!formattedNotes) {
-  formattedNotes = '- Various improvements and bug fixes';
+// Combine manual and automatic content
+let finalContent = '';
+if (manualContent.trim()) {
+  finalContent = manualContent.trim();
+  if (formattedNotes) {
+    finalContent += '\n' + formattedNotes;
+  }
+} else if (formattedNotes) {
+  finalContent = formattedNotes;
+} else {
+  finalContent = '- Various improvements and bug fixes';
 }
 
-const newEntry = `### Version ${nextVersion}
+// Determine if this is a beta release
+const isBeta = nextVersion.includes('-beta');
+const versionLabel = isBeta ? `${nextVersion} (Beta - Testing)` : nextVersion;
+const releaseLabel = isBeta ? `${releaseDate} (Beta Testing Release)` : releaseDate;
 
-#### Released on: ${releaseDate}
+const newEntry = `### Version ${versionLabel}
 
-${formattedNotes}
+#### Released on: ${releaseLabel}
+
+${finalContent}
 `;
 
 // Insert the new entry after the marker

@@ -1,5 +1,15 @@
 {
-  "branches": ["main"],
+  "branches": [
+    {
+      "name": "main",
+      "channel": false
+    },
+    {
+      "name": "test",
+      "prerelease": "beta",
+      "channel": "beta"
+    }
+  ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
@@ -16,7 +26,14 @@
         "pkgRoot": "."
       }
     ],
-    "@semantic-release/github",
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false,
+        "failComment": false,
+        "releasedLabels": false
+      }
+    ],
     [
       "@semantic-release/git",
       {

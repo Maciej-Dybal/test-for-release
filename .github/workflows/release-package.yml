@@ -2,9 +2,9 @@ name: Release
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "test" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "test" ]
 
 jobs:
   build:
@@ -25,7 +25,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
     permissions:
       contents: write
       packages: write
@@ -45,7 +45,15 @@ jobs:
           name: storybook-build
           path: storybook-static
       - run: npm ci
-      - run: npx semantic-release
+      - name: Run semantic-release (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: npx semantic-release --extends ./.releaserc.main.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run semantic-release (test branch - internal only)
+        if: github.ref == 'refs/heads/test'
+        run: npx semantic-release --extends ./.releaserc.test.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
