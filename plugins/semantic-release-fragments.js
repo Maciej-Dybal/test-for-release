@@ -112,10 +112,12 @@ function parseFragment(content) {
 async function getCurrentReleaseCommits() {
 	try {
 		// Get commits since last tag
-		const lastTag = execSync(
-			'git describe --tags --abbrev=0 2>/dev/null || echo ""',
-			{ encoding: "utf8" },
-		).trim();
+		let lastTag = "";
+		try {
+			lastTag = execSync('git describe --tags --abbrev=0', { encoding: "utf8" }).trim();
+		} catch (error) {
+			// No tags found, use all commits
+		}
 		const range = lastTag ? `${lastTag}..HEAD` : "HEAD";
 
 		const commits = execSync(
@@ -146,7 +148,7 @@ async function getFragmentsFromCommit(commitHash) {
 	try {
 		// Get files changed in this commit
 		const changedFiles = execSync(
-			`git diff-tree --no-commit-id --name-only -r ${commitHash}`,
+			`git diff-tree --no-commit-id --name-only -r "${commitHash}"`,
 			{ encoding: "utf8" },
 		)
 			.split("\n")
@@ -326,14 +328,16 @@ async function main() {
 
 		// Stage changes for semantic-release to commit
 		try {
-			execSync(`git add ${VERSION_MDX_PATH}`);
+			execSync(`git add "${VERSION_MDX_PATH}"`);
 
 			if (fragmentsToDelete.size > 0) {
 				// Add deleted fragments
 				for (const fragmentFile of fragmentsToDelete) {
-					execSync(`git add ${fragmentFile}`).catch(() => {
+					try {
+						execSync(`git add "${fragmentFile}"`);
+					} catch (error) {
 						// File might already be deleted
-					});
+					}
 				}
 			}
 
