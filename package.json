@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "commit": "cz",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -22,23 +24,35 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/github": "^12.0.2",
+    "@semantic-release/npm": "^13.1.2",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@storybook/addon-a11y": "^9.1.10",
     "@storybook/addon-docs": "^9.1.10",
     "@storybook/addon-vitest": "^9.1.10",
     "@storybook/react": "^9.1.10",
     "@storybook/react-vite": "^9.1.10",
-    "storybook": "^9.1.10",
-    "vitest": "^3.2.4",
     "@vitest/browser": "^3.2.4",
-    "playwright": "^1.55.1",
     "@vitest/coverage-v8": "^3.2.4",
-    "semantic-release": "^25.0.2"
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7",
+    "playwright": "^1.55.1",
+    "semantic-release": "^25.0.2",
+    "storybook": "^9.1.10",
+    "vitest": "^3.2.4"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/Maciej-Dybal/test-for-release.git"
   },
-	"publishConfig": {
-		"registry": "https://npm.pkg.github.com"
-	}
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
 }
