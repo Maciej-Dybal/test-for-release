@@ -31,7 +31,6 @@ export const Button = ({
 				" ",
 			)}
 			style={{ backgroundColor }}
-			title="Test"
 			{...props}
 		>
 			{label}
