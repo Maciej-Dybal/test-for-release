@@ -29,22 +29,15 @@
 		"forceConsistentCasingInFileNames": true
 	},
 	"include": [
-		"stories/*.tsx",
-		"src/**/*",
-		"stories/02. Components/Button.tsx",
-		"stories/02. Components/Header.tsx",
-		"stories/02. Components/Page.tsx"
+		"stories/02. Components/*.tsx"
 	],
 	"exclude": [
 		"node_modules",
 		"dist",
 		"storybook-static",
-		"**/*.stories.ts",
-		"**/*.stories.tsx",
-		"**/*.test.ts",
-		"**/*.test.tsx",
-		"**/*.spec.ts",
-		"**/*.spec.tsx",
+		"**/*.stories.*",
+		"**/*.test.*",
+		"**/*.spec.*",
 		".storybook/**/*",
 		"vitest.config.ts"
 	]
