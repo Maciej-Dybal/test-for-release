@@ -164,7 +164,7 @@ async function prepare(_pluginConfig, context) {
 			if (category) {
 				commitsInRelease.push({
 					...parsedCommit,
-					category
+					category,
 				});
 			}
 		}
@@ -178,7 +178,8 @@ async function prepare(_pluginConfig, context) {
 			// Find if there's a commit that could relate to this fragment
 			// For now, we'll use the first valid category from commits in this release
 			// You could extend this logic to match fragments to specific commits
-			const category = commitsInRelease.length > 0 ? commitsInRelease[0].category : "Features";
+			const category =
+				commitsInRelease.length > 0 ? commitsInRelease[0].category : "Features";
 
 			if (!changelogData[category][component]) {
 				changelogData[category][component] = [];
