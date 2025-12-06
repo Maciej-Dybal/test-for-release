@@ -10,9 +10,9 @@ This directory contains changelog fragments that provide detailed documentation 
 
 ## Fragment Format
 
-Create `.md` files in this directory with optional frontmatter metadata:
+Create `.mdx` files in this directory with optional frontmatter metadata:
 
-```markdown
+```mdx
 ---
 component: ComponentName
 summary: Brief summary (optional)
@@ -44,8 +44,8 @@ Result: "Resolve hover state issue" under Bugfixes → Button
 git commit -m "feat(button): add new accessibility features"
 ```
 
-Plus create `button-accessibility.md`:
-```markdown
+Plus create `button-accessibility.mdx`:
+```mdx
 ---
 component: Button
 ---
