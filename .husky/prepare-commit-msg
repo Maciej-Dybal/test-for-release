@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Check if this is an interactive commit (no message provided via -m, -F, etc.)
-if [ -z "${2-}" ] && [ "${1-}" != "message" ]; then
-    # If no message was provided, run Commitizen
-    exec < /dev/tty && npx cz --hook || true
-fi
