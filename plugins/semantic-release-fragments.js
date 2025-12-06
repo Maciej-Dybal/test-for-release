@@ -1,14 +1,9 @@
-#!/usr/bin/env node
-
 const fs = require("node:fs").promises;
+const path = require("node:path");
 const { execSync } = require("node:child_process");
 
 /**
- * Standalone Script for Fragment-based Changelog Generation
- *
- * This script processes commits and optional fragment files to generate
- * comprehensive changelog entries with developer-controlled content.
- * Used via @semantic-release/exec in the prepare phase.
+ * Semantic Release Plugin for Fragment-based Changelog Generation
  */
 
 const FRAGMENT_DIR = "stories/01. Docs/fragments";
@@ -17,59 +12,36 @@ const VERSION_MDX_PATH = "stories/01. Docs/Version.mdx";
 /**
  * Parse conventional commit format
  */
-function parseCommit(commitMessage) {
+function parseCommit(commit) {
+	const message = commit.message;
+	const firstLine = message.split("\n")[0];
+
 	// Match conventional commit: type(scope): subject
-	const conventionalMatch = commitMessage.match(
-		/^(\w+)(\([^)]+\))?(!)?:\s*(.+)$/,
-	);
+	const match = firstLine.match(/^(\w+)(\([^)]+\))?(!)?:\s*(.+)$/);
 
-	if (!conventionalMatch) {
-		return {
-			type: "other",
-			scope: null,
-			breaking: false,
-			subject: commitMessage.split("\n")[0],
-			body: commitMessage.split("\n").slice(1).join("\n").trim(),
-		};
-	}
+	if (!match) return null;
 
-	const [, type, scopeWithParens, breakingMarker, subject] = conventionalMatch;
+	const [, type, scopeWithParens, breakingMarker, subject] = match;
 	const scope = scopeWithParens ? scopeWithParens.slice(1, -1) : null;
-	const breaking =
-		!!breakingMarker || commitMessage.includes("BREAKING CHANGE:");
+	const breaking = !!breakingMarker || message.includes("BREAKING CHANGE:");
 
 	return {
 		type,
 		scope,
 		breaking,
 		subject,
-		body: commitMessage.split("\n").slice(1).join("\n").trim(),
+		hash: commit.hash,
 	};
 }
 
 /**
- * Determine category from commit type
+ * Get category from commit type
  */
 function getCategory(parsedCommit) {
-	if (parsedCommit.breaking) {
-		return "Breaking Changes";
-	}
-
-	switch (parsedCommit.type) {
-		case "feat":
-			return "Features";
-		case "fix":
-			return "Bugfixes";
-		case "perf":
-		case "refactor":
-		case "style":
-		case "docs":
-		case "test":
-		case "chore":
-			return "Improvements";
-		default:
-			return "Other";
-	}
+	if (parsedCommit.breaking) return "Breaking Changes";
+	if (parsedCommit.type === "feat") return "Features";
+	if (parsedCommit.type === "fix") return "Bugfixes";
+	return null; // Other types should not be considered
 }
 
 /**
@@ -80,7 +52,7 @@ function parseFragment(content) {
 	const metadata = {};
 	let contentStart = 0;
 
-	// Parse frontmatter-style metadata
+	// Parse frontmatter
 	if (lines[0] === "---") {
 		let i = 1;
 		while (i < lines.length && lines[i] !== "---") {
@@ -97,77 +69,34 @@ function parseFragment(content) {
 	}
 
 	const content_lines = lines.slice(contentStart);
-
 	return {
 		component: metadata.component,
-		summary: metadata.summary,
-		details: metadata.details,
 		content: content_lines.join("\n").trim(),
 	};
 }
 
 /**
- * Get commits for the current release
+ * Get existing fragments in the fragments directory
  */
-async function getCurrentReleaseCommits() {
+async function getExistingFragments() {
 	try {
-		// Get commits since last tag
-		let lastTag = "";
-		try {
-			lastTag = execSync("git describe --tags --abbrev=0", {
-				encoding: "utf8",
-			}).trim();
-		} catch (_error) {
-			// No tags found, use all commits
-		}
-		const range = lastTag ? `${lastTag}..HEAD` : "HEAD";
-
-		const commits = execSync(
-			`git log ${range} --pretty=format:"%H|||%s|||%B" --no-merges`,
-			{ encoding: "utf8" },
-		)
-			.split("\n")
-			.filter((line) => line.trim())
-			.map((line) => {
-				const [hash, subject, ...bodyParts] = line.split("|||");
-				return {
-					hash: hash?.trim(),
-					message: [subject, ...bodyParts].join("\n").trim(),
-				};
-			});
-
-		return commits;
-	} catch (_error) {
-		console.log("Could not get commits, using empty array");
-		return [];
-	}
-}
-
-/**
- * Get fragments modified by commit
- */
-async function getFragmentsFromCommit(commitHash) {
-	try {
-		// Get files changed in this commit
-		const changedFiles = execSync(
-			`git diff-tree --no-commit-id --name-only -r "${commitHash}"`,
-			{ encoding: "utf8" },
-		)
-			.split("\n")
-			.filter((file) => file.trim())
-			.filter((file) => file.startsWith(FRAGMENT_DIR) && file.endsWith(".mdx"));
-
+		const files = await fs.readdir(FRAGMENT_DIR);
 		const fragments = [];
 
-		for (const file of changedFiles) {
-			try {
-				const content = await fs.readFile(file, "utf8");
-				const fragment = parseFragment(content);
-				fragments.push({
-					file,
-					...fragment,
-				});
-			} catch (_error) {}
+		for (const file of files) {
+			if (file.endsWith(".mdx") && file !== "README.md") {
+				const filePath = path.join(FRAGMENT_DIR, file);
+				try {
+					const content = await fs.readFile(filePath, "utf8");
+					const fragment = parseFragment(content);
+					fragments.push({
+						file: filePath,
+						...fragment,
+					});
+				} catch (_error) {
+					// Skip files that can't be read
+				}
+			}
 		}
 
 		return fragments;
@@ -185,8 +114,8 @@ function generateComponentEntry(component, items) {
 	let entry = `- **${component}:**\n`;
 
 	for (const item of items) {
-		if (item?.content?.trim()) {
-			// Use fragment content if available
+		if (item.content?.trim()) {
+			// Use fragment content
 			const lines = item.content.split("\n").filter((line) => line.trim());
 			for (const line of lines) {
 				entry += `\t- ${line.trim()}\n`;
@@ -201,88 +130,87 @@ function generateComponentEntry(component, items) {
 }
 
 /**
- * Main function
+ * Main plugin function - runs in prepare lifecycle
  */
-async function main() {
-	// Get version from environment variable set by semantic-release
-	const nextVersion = process.env.NEXT_VERSION || process.argv[2];
+async function prepare(_pluginConfig, context) {
+	const { nextRelease, commits, logger } = context;
 
-	if (!nextVersion) {
-		console.log("No version found, skipping fragment processing");
-		process.exit(0);
+	if (!commits || commits.length === 0) {
+		logger.log("No commits found, skipping fragment processing");
+		return;
 	}
 
-	console.log(
-		`Processing commits for changelog generation (version ${nextVersion})`,
-	);
+	logger.log(`Processing ${commits.length} commits for changelog generation`);
 
-	// Get commits for this release
-	const commits = await getCurrentReleaseCommits();
+	// Get existing fragments
+	const existingFragments = await getExistingFragments();
+	logger.log(`Found ${existingFragments.length} existing fragments`);
 
-	if (commits.length === 0) {
-		console.log("No commits found, skipping fragment processing");
-		process.exit(0);
-	}
-
-	// Process each commit
+	// Process commits
 	const changelogData = {
 		"Breaking Changes": {},
 		Features: {},
 		Bugfixes: {},
-		Improvements: {},
-		Other: {},
 	};
 
 	const fragmentsToDelete = new Set();
 
 	for (const commit of commits) {
-		const parsedCommit = parseCommit(commit.message);
+		const parsedCommit = parseCommit(commit);
+
+		if (!parsedCommit) continue; // Skip non-conventional commits
+
 		const category = getCategory(parsedCommit);
+		if (!category) continue; // Skip other commit types
+
 		const component = parsedCommit.scope || "Uncategorized";
 
-		// Get fragments from this commit
-		const fragments = await getFragmentsFromCommit(commit.hash);
+		// Initialize component array if needed
+		if (!changelogData[category][component]) {
+			changelogData[category][component] = [];
+		}
 
-		if (fragments.length > 0) {
-			// Process fragments
-			for (const fragment of fragments) {
-				const fragmentComponent = fragment.component || component;
-				const fragmentCategory = category; // Commit category takes precedence
+		// Add commit info
+		changelogData[category][component].push({
+			subject: parsedCommit.subject,
+			content: null,
+		});
+	}
 
-				if (!changelogData[fragmentCategory][fragmentComponent]) {
-					changelogData[fragmentCategory][fragmentComponent] = [];
-				}
+	// Process existing fragments (not based on commits, just copy/paste)
+	for (const fragment of existingFragments) {
+		if (fragment.content) {
+			const component = fragment.component || "Uncategorized";
 
-				changelogData[fragmentCategory][fragmentComponent].push({
-					subject: parsedCommit.subject,
-					content: fragment.content,
-					summary: fragment.summary,
-					details: fragment.details,
-				});
+			// For fragments, we'll put them in Features by default
+			// (fragments are usually about new functionality)
+			const category = "Features";
 
-				fragmentsToDelete.add(fragment.file);
-			}
-		} else {
-			// No fragments, use commit info directly
 			if (!changelogData[category][component]) {
 				changelogData[category][component] = [];
 			}
 
 			changelogData[category][component].push({
-				subject: parsedCommit.subject,
-				content: null,
+				subject: null,
+				content: fragment.content,
 			});
+
+			fragmentsToDelete.add(fragment.file);
 		}
 	}
 
 	// Generate MDX content
 	const releaseDate = new Date().toISOString().split("T")[0];
-	let mdxContent = `### Version ${nextVersion}\n\n#### Released on: ${releaseDate}\n\n`;
+	let mdxContent = `### Version ${nextRelease.version}\n\n#### Released on: ${releaseDate}\n\n`;
 
-	// Add categories in order
-	for (const [category, components] of Object.entries(changelogData)) {
-		const componentEntries = Object.keys(components);
-		if (componentEntries.length === 0) continue;
+	// Add categories in specific order
+	const categoryOrder = ["Breaking Changes", "Features", "Bugfixes"];
+
+	for (const category of categoryOrder) {
+		const components = changelogData[category];
+		const componentNames = Object.keys(components);
+
+		if (componentNames.length === 0) continue;
 
 		mdxContent += `**${category}**\n\n`;
 
@@ -300,7 +228,6 @@ async function main() {
 		try {
 			existingContent = await fs.readFile(VERSION_MDX_PATH, "utf8");
 		} catch (_error) {
-			// File doesn't exist, create basic structure
 			existingContent =
 				"## Version history\n\n{/* AUTO-GENERATED RELEASES WILL BE INSERTED HERE */}\n";
 		}
@@ -312,17 +239,17 @@ async function main() {
 		);
 
 		await fs.writeFile(VERSION_MDX_PATH, newContent, "utf8");
-		console.log(
-			`Updated ${VERSION_MDX_PATH} with changelog for version ${nextVersion}`,
+		logger.log(
+			`Updated ${VERSION_MDX_PATH} with changelog for version ${nextRelease.version}`,
 		);
 
 		// Delete processed fragments
 		for (const fragmentFile of fragmentsToDelete) {
 			try {
 				await fs.unlink(fragmentFile);
-				console.log(`Deleted processed fragment: ${fragmentFile}`);
+				logger.log(`Deleted processed fragment: ${fragmentFile}`);
 			} catch (error) {
-				console.warn(
+				logger.warn(
 					`Could not delete fragment ${fragmentFile}: ${error.message}`,
 				);
 			}
@@ -333,7 +260,6 @@ async function main() {
 			execSync(`git add "${VERSION_MDX_PATH}"`);
 
 			if (fragmentsToDelete.size > 0) {
-				// Add deleted fragments
 				for (const fragmentFile of fragmentsToDelete) {
 					try {
 						execSync(`git add "${fragmentFile}"`);
@@ -343,18 +269,14 @@ async function main() {
 				}
 			}
 
-			console.log("Staged changelog updates for semantic-release commit");
+			logger.log("Staged changelog updates for semantic-release commit");
 		} catch (error) {
-			console.warn(`Could not stage changelog: ${error.message}`);
+			logger.warn(`Could not stage changelog: ${error.message}`);
 		}
 	} catch (error) {
-		console.error(`Error updating changelog: ${error.message}`);
-		process.exit(1);
+		logger.error(`Error updating changelog: ${error.message}`);
+		throw error;
 	}
 }
 
-// Run the script
-main().catch((error) => {
-	console.error("Script failed:", error);
-	process.exit(1);
-});
+module.exports = { prepare };
