@@ -37,7 +37,7 @@ let formattedNotes = releaseNotes
 
 // Parse sections and transform format
 const sections = formattedNotes
-	.split(/^## /gm)
+	.split(/^### /gm)
 	.filter((section) => section.trim());
 let output = "";
 
@@ -88,12 +88,22 @@ sections.forEach((section) => {
 					? inlineDescription.substring(2)
 					: inlineDescription;
 				currentDescriptions.push(`- ${cleanDesc}`);
+			} else if (inlineDescription) {
+				// For Features/Bug Fixes, use commit title as description since there are no separate lines
+				currentDescriptions.push(`- ${inlineDescription}`);
 			}
-			// For other sections (Features, Bug Fixes), ignore inline and wait for separate lines
 		}
-		// Handle description lines: - Long desc title attr removal
+		// Handle description lines: - Long desc title attr removal  
 		else if (line.startsWith("- ") && currentComponent) {
 			currentDescriptions.push(line); // Keep the full line including the dash
+		}
+		// Handle indented body text (commit body from Commitizen)
+		else if (line.startsWith("  ") && currentComponent) {
+			// This is indented body text from the commit
+			const bodyText = line.trim();
+			if (bodyText) {
+				currentDescriptions.push(`- ${bodyText}`);
+			}
 		}
 	});
 
