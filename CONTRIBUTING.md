@@ -2,69 +2,33 @@
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automatic semantic versioning.
 
-## Automatic Commitizen with Version.mdx Integration
+## Commitizen for Conventional Commits
 
-We've enhanced [Commitizen](https://commitizen-tools.github.io/commitizen/) to automatically help you add detailed component changes to Version.mdx while creating conventional commits.
+We use [Commitizen](https://commitizen-tools.github.io/commitizen/) to help create properly formatted conventional commit messages.
 
-When you use `git commit`, you'll get an interactive prompt that includes:
-
-### Standard Conventional Commit Fields:
-1. **Type**: feat, fix, docs, etc.
-2. **Scope**: Component/file name
-3. **Subject**: Short description
-4. **Body**: Longer description (optional)
-
-### NEW: Version.mdx Content Field
-5. **Version.mdx Content**: Add detailed component changes directly during commit
-
-### Example Workflow:
+### Recommended Workflow:
 
 ```bash
 git add .
-git commit
-# Interactive Commitizen prompt:
-
-? Select the type of change: feat
-? What is the scope: Button, Header  
-? Short description: add new button variants and improve header navigation
-? Longer description: (optional)
-? Add detailed component changes for Version.mdx:
-- **Button:** Added new size variants (xs, sm, md, lg, xl) with improved styling
-- **Header:** Enhanced navigation with dropdown menus and better accessibility
-
-? Breaking changes: (optional)
-? Issues closed: #123, #124
-? Confirm commit: Yes
+npm run commit
+# ↑ This will start the interactive Commitizen prompt
 ```
 
-### What Happens:
-1. ✅ **Conventional commit created** with proper format
-2. ✅ **Version.mdx automatically updated** with your detailed content  
-3. ✅ **File staged and included** in the commit
-4. ✅ **Semantic-release picks up both** conventional commit AND detailed content
+### Alternative - Manual Commits:
 
-### Manual Version.mdx Updates
+If you prefer to write commit messages manually:
 
-You can still add content manually to `stories/01. Docs/Version.mdx`:
-
-```mdx
-## Version history
-
-{/* AUTO-GENERATED RELEASES WILL BE INSERTED HERE */}
-
-### Version 1.2.0 (Upcoming)
-#### Released on: tbd
-- **ComponentName:** Manual addition before release
+```bash
+git commit -m "feat: add new feature"
+git commit -m "fix: resolve button styling issue"
 ```
 
-### Combined Result
+### Why Use Commitizen:
 
-When semantic-release runs, it combines:
-- **Your detailed component changes** (from Commitizen)
-- **Automatic release notes** (from conventional commits)  
-- **Manual additions** (from direct file edits)
-
-This gives you rich, detailed version documentation with minimal effort!
+- ✅ Ensures proper conventional commit format
+- ✅ Guides you through commit types and scopes
+- ✅ Helps with semantic versioning
+- ✅ No vim/editor popups - clean terminal interface
 
 ## Manual Commit Message Format
 
