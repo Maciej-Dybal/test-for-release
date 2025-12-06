@@ -15,18 +15,10 @@
 		[
 			"@semantic-release/release-notes-generator",
 			{
-				"preset": "conventionalcommits",
-				"writerOpts": {
-					"commitTemplate": "* **{{scope}}:** {{subject}}{{#if body}}\n\n  {{body}}{{/if}}"
-				}
+				"preset": "conventionalcommits"
 			}
 		],
-		[
-			"@semantic-release/exec",
-			{
-				"prepareCmd": "NEXT_VERSION=${nextRelease.version} RELEASE_NOTES='${nextRelease.notes}' node scripts/update-version-mdx.js"
-			}
-		],
+		"./plugins/semantic-release-fragments",
 		[
 			"@semantic-release/npm",
 			{
