@@ -26,12 +26,33 @@ if (!nextVersion || !releaseNotes) {
 	process.exit(0);
 }
 
-// Format the new entry - convert release notes to bullet points
+// Format the new entry - convert release notes to custom component format
 let formattedNotes = releaseNotes
 	.replace(/^# .*?\n/, "") // Remove main heading
 	.replace(/^## .*?\n/gm, "") // Remove section headings
 	.replace(/^\* /gm, "- ") // Convert asterisk bullets to dash bullets
+	.replace(/\([a-f0-9]{7}\)/g, "") // Remove commit hash references
+	.replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links
 	.trim();
+
+// Transform to component-based format with capitalized names and detailed descriptions
+formattedNotes = formattedNotes
+	.split('\n')
+	.map(line => {
+		if (line.startsWith('- **')) {
+			// Extract component name and description
+			const match = line.match(/^- \*\*([^:*]+):\*\* (.+)$/);
+			if (match) {
+				const componentName = match[1].trim();
+				const description = match[2].trim();
+				// Capitalize component name and format with detailed description
+				const capitalizedName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+				return `- **${capitalizedName}:**\n\t- ${description}`;
+			}
+		}
+		return line;
+	})
+	.join('\n');
 
 // If no formatted notes, add a generic entry
 if (!formattedNotes) {
