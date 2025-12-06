@@ -1,6 +1,6 @@
 {
 	"name": "@Maciej-Dybal/test-for-release",
-	"version": "5.0.0",
+	"version": "5.1.0",
 	"description": "A test project demonstrating automated releases with semantic-release and Storybook components",
 	"main": "index.js",
 	"scripts": {
