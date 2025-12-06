@@ -200,7 +200,7 @@ async function prepare(_pluginConfig, context) {
 
 	// Add categories in specific order
 	const categoryOrder = ["Breaking Changes", "Features", "Bugfixes"];
-	
+
 	let hasContent = false;
 
 	for (const category of categoryOrder) {
@@ -210,11 +210,11 @@ async function prepare(_pluginConfig, context) {
 		if (componentNames.length === 0) continue;
 
 		if (!hasContent) {
-			mdxContent += '\n\n'; // First section gets double newline after date
+			mdxContent += "\n\n"; // First section gets double newline after date
 		} else {
-			mdxContent += '\n'; // Subsequent sections get single newline
+			mdxContent += "\n"; // Subsequent sections get single newline
 		}
-		
+
 		mdxContent += `**${category}**\n\n`;
 
 		for (const [component, items] of Object.entries(components)) {
@@ -222,11 +222,11 @@ async function prepare(_pluginConfig, context) {
 			if (entry) {
 				mdxContent += entry;
 				if (component !== componentNames[componentNames.length - 1]) {
-					mdxContent += '\n'; // Add newline between components
+					mdxContent += "\n"; // Add newline between components
 				}
 			}
 		}
-		
+
 		hasContent = true;
 	}
 
