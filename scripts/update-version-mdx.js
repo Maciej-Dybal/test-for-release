@@ -36,64 +36,73 @@ let formattedNotes = releaseNotes
 	.trim();
 
 // Parse sections and transform format
-const sections = formattedNotes.split(/^## /gm).filter(section => section.trim());
+const sections = formattedNotes
+	.split(/^## /gm)
+	.filter((section) => section.trim());
 let output = "";
 
-sections.forEach(section => {
-	const lines = section.split('\n').filter(line => line.trim());
+sections.forEach((section) => {
+	const lines = section.split("\n").filter((line) => line.trim());
 	if (lines.length === 0) return;
-	
+
 	const sectionTitle = lines[0].trim();
 	const sectionContent = lines.slice(1);
-	
+
 	// Add section header (Features, BREAKING CHANGES, etc.)
 	if (sectionTitle) {
 		output += `\n### ${sectionTitle.toUpperCase()}\n\n`;
 	}
-	
+
 	let currentComponent = null;
 	let currentDescriptions = [];
-	
-	sectionContent.forEach(line => {
+
+	sectionContent.forEach((line) => {
 		line = line.trim();
 		if (!line) return;
-		
+
 		// Handle component lines: * **button:** remove title attr
 		const componentMatch = line.match(/^\* \*\*([^:*]+):\*\*\s*(.*)$/);
 		if (componentMatch) {
 			// Save previous component if exists
 			if (currentComponent && currentDescriptions.length > 0) {
-				const capitalizedName = currentComponent.charAt(0).toUpperCase() + currentComponent.slice(1);
+				const capitalizedName =
+					currentComponent.charAt(0).toUpperCase() + currentComponent.slice(1);
 				output += `- **${capitalizedName}:**\n`;
-				currentDescriptions.forEach(desc => {
+				currentDescriptions.forEach((desc) => {
 					output += `\t${desc}\n`;
 				});
 				output += `\n`; // Add blank line after each component
 			}
-			
+
 			currentComponent = componentMatch[1].trim();
 			currentDescriptions = [];
-			
+
 			// Handle inline description based on section type
 			const inlineDescription = componentMatch[2].trim();
-			if (inlineDescription && sectionTitle.toUpperCase().includes('BREAKING')) {
+			if (
+				inlineDescription &&
+				sectionTitle.toUpperCase().includes("BREAKING")
+			) {
 				// For BREAKING CHANGES, use the inline description (after removing leading dash if present)
-				const cleanDesc = inlineDescription.startsWith('- ') ? inlineDescription.substring(2) : inlineDescription;
+				const cleanDesc = inlineDescription.startsWith("- ")
+					? inlineDescription.substring(2)
+					: inlineDescription;
 				currentDescriptions.push(`- ${cleanDesc}`);
 			}
 			// For other sections (Features, Bug Fixes), ignore inline and wait for separate lines
 		}
 		// Handle description lines: - Long desc title attr removal
-		else if (line.startsWith('- ') && currentComponent) {
+		else if (line.startsWith("- ") && currentComponent) {
 			currentDescriptions.push(line); // Keep the full line including the dash
 		}
 	});
-	
+
 	// Add the last component
 	if (currentComponent && currentDescriptions.length > 0) {
-		const capitalizedName = currentComponent.charAt(0).toUpperCase() + currentComponent.slice(1);
+		const capitalizedName =
+			currentComponent.charAt(0).toUpperCase() + currentComponent.slice(1);
 		output += `- **${capitalizedName}:**\n`;
-		currentDescriptions.forEach(desc => {
+		currentDescriptions.forEach((desc) => {
 			output += `\t${desc}\n`;
 		});
 		output += `\n`; // Add blank line after the last component too
