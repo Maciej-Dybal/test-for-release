@@ -1,5 +1,5 @@
 {
-  "name": "test-deploy",
+  "name": "test-for-release",
   "version": "0.0.0-development",
   "description": "",
   "main": "index.js",
@@ -39,6 +39,6 @@
     "url": "https://github.com/Maciej-Dybal/test-for-release.git"
   },
 	"publishConfig": {
-		"@YOUR-USERNAME:registry": "https://npm.pkg.github.com"
+		"registry": "https://npm.pkg.github.com"
 	}
 }
