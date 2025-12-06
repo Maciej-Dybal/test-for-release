@@ -31,7 +31,7 @@
   "include": [
     "stories/*.tsx",
     "src/**/*"
-  ],
+, "stories/02. Components/Button.tsx", "stories/02. Components/Header.tsx", "stories/02. Components/Page.tsx"  ],
   "exclude": [
     "node_modules",
     "dist",
