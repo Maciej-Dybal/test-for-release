@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
