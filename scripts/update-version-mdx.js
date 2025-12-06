@@ -26,35 +26,52 @@ if (!nextVersion || !releaseNotes) {
   process.exit(0);
 }
 
-// Format the new entry - convert release notes to bullet points
+// Parse release notes and convert to component-based format
 let formattedNotes = releaseNotes
   .replace(/^# .*?\n/, '') // Remove main heading
   .replace(/^## .*?\n/gm, '') // Remove section headings
-  .replace(/^\* /gm, '- ') // Convert asterisk bullets to dash bullets
+  .replace(/^\* /gm, '') // Remove asterisk bullets
   .trim();
+
+// Convert to component-based format if not already
+if (formattedNotes && !formattedNotes.includes('**')) {
+  // If no component specified, use generic format
+  formattedNotes = `- **Component:**\n\n\t- ${formattedNotes.replace(/\n/g, '\n\n\t- ')}`;
+} else if (formattedNotes) {
+  // Ensure proper indentation for existing component format
+  formattedNotes = formattedNotes
+    .split('\n')
+    .map(line => {
+      if (line.trim().startsWith('**') && line.includes(':**')) {
+        return `- ${line.trim()}`;
+      } else if (line.trim().startsWith('-') && !line.includes('**')) {
+        return `\n\t${line.trim()}`;
+      }
+      return line;
+    })
+    .join('\n');
+}
 
 // If no formatted notes, add a generic entry
 if (!formattedNotes) {
-  formattedNotes = '- Various improvements and bug fixes';
+  formattedNotes = '- **Component:**\n\n\t- Various improvements and bug fixes';
 }
 
-// Determine if this is a beta release
-const isBeta = nextVersion.includes('-beta');
-const versionLabel = isBeta ? `${nextVersion} (Beta - Testing)` : nextVersion;
-const releaseLabel = isBeta ? `${releaseDate} (Beta Testing Release)` : releaseDate;
+// Don't add beta labels - keep version as is
+const versionLabel = nextVersion;
+const releaseLabel = releaseDate;
 
 const newEntry = `### Version ${versionLabel}
 
 #### Released on: ${releaseLabel}
 
-${formattedNotes}
-`;
+${formattedNotes}`;
 
 // Insert the new entry after the marker
 const marker = '{/* AUTO-GENERATED RELEASES WILL BE INSERTED HERE */}';
 const newContent = content.replace(
   marker,
-  `${marker}\n\n${newEntry}`
+  `${marker}\n\n${newEntry}\n`
 );
 
 // Write the updated content
