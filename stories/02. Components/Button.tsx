@@ -31,6 +31,7 @@ export const Button = ({
 				" ",
 			)}
 			style={{ backgroundColor }}
+			aria-label={label}
 			{...props}
 		>
 			{label}

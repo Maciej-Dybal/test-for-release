@@ -196,10 +196,12 @@ async function prepare(_pluginConfig, context) {
 
 	// Generate MDX content
 	const releaseDate = new Date().toISOString().split("T")[0];
-	let mdxContent = `### Version ${nextRelease.version}\n\n#### Released on: ${releaseDate}\n\n`;
+	let mdxContent = `### Version ${nextRelease.version}\n\n#### Released on: ${releaseDate}`;
 
 	// Add categories in specific order
 	const categoryOrder = ["Breaking Changes", "Features", "Bugfixes"];
+	
+	let hasContent = false;
 
 	for (const category of categoryOrder) {
 		const components = changelogData[category];
@@ -207,14 +209,25 @@ async function prepare(_pluginConfig, context) {
 
 		if (componentNames.length === 0) continue;
 
+		if (!hasContent) {
+			mdxContent += '\n\n'; // First section gets double newline after date
+		} else {
+			mdxContent += '\n'; // Subsequent sections get single newline
+		}
+		
 		mdxContent += `**${category}**\n\n`;
 
 		for (const [component, items] of Object.entries(components)) {
 			const entry = generateComponentEntry(component, items);
 			if (entry) {
-				mdxContent += `${entry}\n`;
+				mdxContent += entry;
+				if (component !== componentNames[componentNames.length - 1]) {
+					mdxContent += '\n'; // Add newline between components
+				}
 			}
 		}
+		
+		hasContent = true;
 	}
 
 	// Update Version.mdx file
