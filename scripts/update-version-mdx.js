@@ -29,31 +29,78 @@ if (!nextVersion || !releaseNotes) {
 // Format the new entry - convert release notes to custom component format
 let formattedNotes = releaseNotes
 	.replace(/^# .*?\n/, "") // Remove main heading
-	.replace(/^## .*?\n/gm, "") // Remove section headings
-	.replace(/^\* /gm, "- ") // Convert asterisk bullets to dash bullets
 	.replace(/\([a-f0-9]{7}\)/g, "") // Remove commit hash references
 	.replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links
+	.replace(/[A-Z]+-\d+/g, "") // Remove ticket numbers
+	.replace(/\(\s*\)/g, "") // Remove empty parentheses
 	.trim();
 
-// Transform to component-based format with capitalized names and detailed descriptions
-formattedNotes = formattedNotes
-	.split("\n")
-	.map((line) => {
-		if (line.startsWith("- **")) {
-			// Extract component name and description
-			const match = line.match(/^- \*\*([^:*]+):\*\* (.+)$/);
-			if (match) {
-				const componentName = match[1].trim();
-				const description = match[2].trim();
-				// Capitalize component name and format with detailed description
-				const capitalizedName =
-					componentName.charAt(0).toUpperCase() + componentName.slice(1);
-				return `- **${capitalizedName}:**\n\t- ${description}`;
+// Parse sections and transform format
+const sections = formattedNotes.split(/^## /gm).filter(section => section.trim());
+let output = "";
+
+sections.forEach(section => {
+	const lines = section.split('\n').filter(line => line.trim());
+	if (lines.length === 0) return;
+	
+	const sectionTitle = lines[0].trim();
+	const sectionContent = lines.slice(1);
+	
+	// Add section header (Features, BREAKING CHANGES, etc.)
+	if (sectionTitle) {
+		output += `\n### ${sectionTitle.toUpperCase()}\n\n`;
+	}
+	
+	let currentComponent = null;
+	let currentDescriptions = [];
+	
+	sectionContent.forEach(line => {
+		line = line.trim();
+		if (!line) return;
+		
+		// Handle component lines: * **button:** remove title attr
+		const componentMatch = line.match(/^\* \*\*([^:*]+):\*\*\s*(.*)$/);
+		if (componentMatch) {
+			// Save previous component if exists
+			if (currentComponent && currentDescriptions.length > 0) {
+				const capitalizedName = currentComponent.charAt(0).toUpperCase() + currentComponent.slice(1);
+				output += `- **${capitalizedName}:**\n`;
+				currentDescriptions.forEach(desc => {
+					output += `\t${desc}\n`;
+				});
+				output += `\n`; // Add blank line after each component
 			}
+			
+			currentComponent = componentMatch[1].trim();
+			currentDescriptions = [];
+			
+			// Handle inline description based on section type
+			const inlineDescription = componentMatch[2].trim();
+			if (inlineDescription && sectionTitle.toUpperCase().includes('BREAKING')) {
+				// For BREAKING CHANGES, use the inline description (after removing leading dash if present)
+				const cleanDesc = inlineDescription.startsWith('- ') ? inlineDescription.substring(2) : inlineDescription;
+				currentDescriptions.push(`- ${cleanDesc}`);
+			}
+			// For other sections (Features, Bug Fixes), ignore inline and wait for separate lines
 		}
-		return line;
-	})
-	.join("\n");
+		// Handle description lines: - Long desc title attr removal
+		else if (line.startsWith('- ') && currentComponent) {
+			currentDescriptions.push(line); // Keep the full line including the dash
+		}
+	});
+	
+	// Add the last component
+	if (currentComponent && currentDescriptions.length > 0) {
+		const capitalizedName = currentComponent.charAt(0).toUpperCase() + currentComponent.slice(1);
+		output += `- **${capitalizedName}:**\n`;
+		currentDescriptions.forEach(desc => {
+			output += `\t${desc}\n`;
+		});
+		output += `\n`; // Add blank line after the last component too
+	}
+});
+
+formattedNotes = output.trim();
 
 // If no formatted notes, add a generic entry
 if (!formattedNotes) {
