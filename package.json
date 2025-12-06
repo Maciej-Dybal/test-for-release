@@ -1,12 +1,13 @@
 {
   "name": "test-deploy",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "semantic-release": "semantic-release"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,14 @@
     "vitest": "^3.2.4",
     "@vitest/browser": "^3.2.4",
     "playwright": "^1.55.1",
-    "@vitest/coverage-v8": "^3.2.4"
-  }
+    "@vitest/coverage-v8": "^3.2.4",
+    "semantic-release": "^25.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Maciej-Dybal/test-for-release.git"
+  },
+	"publishConfig": {
+		"@YOUR-USERNAME:registry": "https://npm.pkg.github.com"
+	}
 }
