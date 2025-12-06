@@ -28,9 +28,7 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true
 	},
-	"include": [
-		"stories/02. Components/*.tsx"
-	],
+	"include": ["stories/02. Components/*.tsx"],
 	"exclude": [
 		"node_modules",
 		"dist",

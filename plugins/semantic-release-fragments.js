@@ -27,7 +27,8 @@ function parseCommit(commit) {
 	if (!match) return null;
 
 	const [, type, scopeWithParens, breakingMarker, subject] = match;
-	const breaking = !!breakingMarker || commit.message.includes("BREAKING CHANGE:");
+	const breaking =
+		!!breakingMarker || commit.message.includes("BREAKING CHANGE:");
 
 	return {
 		type,
@@ -71,7 +72,7 @@ async function getExistingFragments() {
 		const files = await fs.readdir(FRAGMENT_DIR);
 		const fragments = await Promise.all(
 			files
-				.filter(file => file.endsWith(".mdx") && file !== "README.md")
+				.filter((file) => file.endsWith(".mdx") && file !== "README.md")
 				.map(async (file) => {
 					try {
 						const filePath = path.join(FRAGMENT_DIR, file);
@@ -80,7 +81,7 @@ async function getExistingFragments() {
 					} catch {
 						return null;
 					}
-				})
+				}),
 		);
 		return fragments.filter(Boolean);
 	} catch {
@@ -97,8 +98,8 @@ function generateComponentEntry(component, items) {
 	let entry = `- **${component}:**\n`;
 	for (const item of items) {
 		if (item.content?.trim()) {
-			const lines = item.content.split("\n").filter(line => line.trim());
-			entry += lines.map(line => `\t- ${line.trim()}`).join("\n") + "\n";
+			const lines = item.content.split("\n").filter((line) => line.trim());
+			entry += lines.map((line) => `\t- ${line.trim()}`).join("\n") + "\n";
 		} else {
 			entry += `\t- ${item.subject}\n`;
 		}
@@ -154,18 +155,25 @@ async function prepare(_pluginConfig, context) {
 	// Get existing fragments and parse commits in parallel
 	const [existingFragments, parsedCommits] = await Promise.all([
 		getExistingFragments(),
-		Promise.resolve(commits.map(parseCommit).filter(Boolean).filter(c => c.category))
+		Promise.resolve(
+			commits
+				.map(parseCommit)
+				.filter(Boolean)
+				.filter((c) => c.category),
+		),
 	]);
 
 	logger.log(`Found ${existingFragments.length} existing fragments`);
 
 	// Initialize changelog data
-	const changelogData = Object.fromEntries(CATEGORY_ORDER.map(cat => [cat, {}]));
+	const changelogData = Object.fromEntries(
+		CATEGORY_ORDER.map((cat) => [cat, {}]),
+	);
 	const fragmentsToDelete = new Set();
 
 	// Process fragments
 	const defaultCategory = parsedCommits[0]?.category || "Features";
-	
+
 	for (const fragment of existingFragments) {
 		if (!fragment.content?.trim() || !fragment.component) continue;
 
@@ -197,9 +205,14 @@ async function prepare(_pluginConfig, context) {
 		}
 
 		// Update content
-		const newContent = existingContent.replace(MARKER, `${MARKER}\n\n${mdxContent}`);
+		const newContent = existingContent.replace(
+			MARKER,
+			`${MARKER}\n\n${mdxContent}`,
+		);
 		await fs.writeFile(VERSION_MDX_PATH, newContent, "utf8");
-		logger.log(`Updated ${VERSION_MDX_PATH} with changelog for version ${nextRelease.version}`);
+		logger.log(
+			`Updated ${VERSION_MDX_PATH} with changelog for version ${nextRelease.version}`,
+		);
 
 		// Clean up fragments and stage changes
 		await Promise.all([
@@ -208,9 +221,11 @@ async function prepare(_pluginConfig, context) {
 					await fs.unlink(fragmentFile);
 					logger.log(`Deleted processed fragment: ${fragmentFile}`);
 				} catch (error) {
-					logger.warn(`Could not delete fragment ${fragmentFile}: ${error.message}`);
+					logger.warn(
+						`Could not delete fragment ${fragmentFile}: ${error.message}`,
+					);
 				}
-			})
+			}),
 		]);
 
 		// Stage changes
@@ -229,7 +244,6 @@ async function prepare(_pluginConfig, context) {
 		} catch (error) {
 			logger.warn(`Could not stage changelog: ${error.message}`);
 		}
-
 	} catch (error) {
 		logger.error(`Error updating changelog: ${error.message}`);
 		throw error;
