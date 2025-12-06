@@ -114,8 +114,10 @@ async function getCurrentReleaseCommits() {
 		// Get commits since last tag
 		let lastTag = "";
 		try {
-			lastTag = execSync('git describe --tags --abbrev=0', { encoding: "utf8" }).trim();
-		} catch (error) {
+			lastTag = execSync("git describe --tags --abbrev=0", {
+				encoding: "utf8",
+			}).trim();
+		} catch (_error) {
 			// No tags found, use all commits
 		}
 		const range = lastTag ? `${lastTag}..HEAD` : "HEAD";
@@ -335,7 +337,7 @@ async function main() {
 				for (const fragmentFile of fragmentsToDelete) {
 					try {
 						execSync(`git add "${fragmentFile}"`);
-					} catch (error) {
+					} catch (_error) {
 						// File might already be deleted
 					}
 				}
