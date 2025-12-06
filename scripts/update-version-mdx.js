@@ -93,7 +93,7 @@ sections.forEach((section) => {
 				currentDescriptions.push(`- ${inlineDescription}`);
 			}
 		}
-		// Handle description lines: - Long desc title attr removal  
+		// Handle description lines: - Long desc title attr removal
 		else if (line.startsWith("- ") && currentComponent) {
 			currentDescriptions.push(line); // Keep the full line including the dash
 		}
