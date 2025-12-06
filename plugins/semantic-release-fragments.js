@@ -99,7 +99,7 @@ function generateComponentEntry(component, items) {
 	for (const item of items) {
 		if (item.content?.trim()) {
 			const lines = item.content.split("\n").filter((line) => line.trim());
-			entry += lines.map((line) => `\t- ${line.trim()}`).join("\n") + "\n";
+			entry += `${lines.map((line) => `\t- ${line.trim()}`).join("\n")}\n`;
 		} else {
 			entry += `\t- ${item.subject}\n`;
 		}
