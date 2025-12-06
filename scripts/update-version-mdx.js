@@ -37,22 +37,23 @@ let formattedNotes = releaseNotes
 
 // Transform to component-based format with capitalized names and detailed descriptions
 formattedNotes = formattedNotes
-	.split('\n')
-	.map(line => {
-		if (line.startsWith('- **')) {
+	.split("\n")
+	.map((line) => {
+		if (line.startsWith("- **")) {
 			// Extract component name and description
 			const match = line.match(/^- \*\*([^:*]+):\*\* (.+)$/);
 			if (match) {
 				const componentName = match[1].trim();
 				const description = match[2].trim();
 				// Capitalize component name and format with detailed description
-				const capitalizedName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+				const capitalizedName =
+					componentName.charAt(0).toUpperCase() + componentName.slice(1);
 				return `- **${capitalizedName}:**\n\t- ${description}`;
 			}
 		}
 		return line;
 	})
-	.join('\n');
+	.join("\n");
 
 // If no formatted notes, add a generic entry
 if (!formattedNotes) {
