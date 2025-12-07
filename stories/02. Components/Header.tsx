@@ -37,7 +37,7 @@ export const Header = ({
 						/>
 					</g>
 				</svg>
-				<h1>Acme</h1>
+				<h1>Acme wiajdiajwdijawidijawid</h1>
 			</div>
 			<div>
 				{user ? (
