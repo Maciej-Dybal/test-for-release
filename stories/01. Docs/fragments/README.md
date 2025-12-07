@@ -14,13 +14,12 @@ Create `.mdx` files in this directory with optional frontmatter metadata:
 
 ```mdx
 ---
-component: ComponentName
-summary: Brief summary (optional)
+component: Button
 ---
 
-Your detailed changelog content goes here.
-Multiple lines are supported.
-Each line becomes a bullet point in the final changelog.
+Test
+test22222
+Additional details about the change or feature.
 ```
 
 ## Categories
