@@ -108,6 +108,18 @@ function generateComponentEntry(component, items) {
 }
 
 /**
+ * Remove beta versions for the same major.minor from content
+ */
+function removeBetaVersions(content, stableVersion) {
+	const [major, minor] = stableVersion.split('.');
+	const betaPattern = new RegExp(
+		`### Version ${major}\\.${minor}\\.\\d+-beta\\.\\d+[\\s\\S]*?(?=### Version|$)`,
+		'g'
+	);
+	return content.replace(betaPattern, '').replace(/\n{3,}/g, '\n\n');
+}
+
+/**
  * Generate MDX content for the release
  */
 function generateMDXContent(nextRelease, changelogData) {
@@ -202,6 +214,12 @@ async function prepare(_pluginConfig, context) {
 			existingContent = await fs.readFile(VERSION_MDX_PATH, "utf8");
 		} catch {
 			existingContent = `## Version history\n\n${MARKER}\n`;
+		}
+
+		// If this is a stable release, remove beta versions for the same major.minor
+		const isStableRelease = !nextRelease.version.includes('-');
+		if (isStableRelease) {
+			existingContent = removeBetaVersions(existingContent, nextRelease.version);
 		}
 
 		// Update content
