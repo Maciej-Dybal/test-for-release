@@ -111,12 +111,12 @@ function generateComponentEntry(component, items) {
  * Remove beta versions for the same major.minor from content
  */
 function removeBetaVersions(content, stableVersion) {
-	const [major, minor] = stableVersion.split('.');
+	const [major, minor] = stableVersion.split(".");
 	const betaPattern = new RegExp(
 		`### Version ${major}\\.${minor}\\.\\d+-beta\\.\\d+[\\s\\S]*?(?=### Version|$)`,
-		'g'
+		"g",
 	);
-	return content.replace(betaPattern, '').replace(/\n{3,}/g, '\n\n');
+	return content.replace(betaPattern, "").replace(/\n{3,}/g, "\n\n");
 }
 
 /**
@@ -217,10 +217,15 @@ async function prepare(_pluginConfig, context) {
 		}
 
 		// If this is a stable release, remove beta versions for the same major.minor
-		const isStableRelease = !nextRelease.version.includes('-');
+		const isStableRelease = !nextRelease.version.includes("-");
 		if (isStableRelease) {
-			existingContent = removeBetaVersions(existingContent, nextRelease.version);
-			logger.log(`Removed beta versions for stable release ${nextRelease.version}`);
+			existingContent = removeBetaVersions(
+				existingContent,
+				nextRelease.version,
+			);
+			logger.log(
+				`Removed beta versions for stable release ${nextRelease.version}`,
+			);
 		}
 
 		// Update content
