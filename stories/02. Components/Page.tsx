@@ -49,8 +49,8 @@ export const Page: React.FC = () => {
 					</li>
 				</ul>
 				<p>
-					daiwjdiawjdijawida
-					Get a guided tutorial on component-driven development at{" "}
+					daiwjdiawjdijawida Get a guided tutorial on component-driven
+					development at{" "}
 					<a
 						href="https://storybook.js.org/tutorials/"
 						target="_blank"
