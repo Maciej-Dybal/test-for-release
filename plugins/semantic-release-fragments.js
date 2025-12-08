@@ -238,24 +238,30 @@ async function prepare(_pluginConfig, context) {
 			`Updated ${VERSION_MDX_PATH} with changelog for version ${nextRelease.version}`,
 		);
 
-		// Clean up fragments and stage changes
-		await Promise.all([
-			...Array.from(fragmentsToDelete).map(async (fragmentFile) => {
-				try {
-					await fs.unlink(fragmentFile);
-					logger.log(`Deleted processed fragment: ${fragmentFile}`);
-				} catch (error) {
-					logger.warn(
-						`Could not delete fragment ${fragmentFile}: ${error.message}`,
-					);
-				}
-			}),
-		]);
+		// Clean up fragments only for stable releases
+		if (isStableRelease) {
+			// Delete fragments only on stable release
+			await Promise.all([
+				...Array.from(fragmentsToDelete).map(async (fragmentFile) => {
+					try {
+						await fs.unlink(fragmentFile);
+						logger.log(`Deleted processed fragment: ${fragmentFile}`);
+					} catch (error) {
+						logger.warn(
+							`Could not delete fragment ${fragmentFile}: ${error.message}`,
+						);
+					}
+				}),
+			]);
+			logger.log("Fragments deleted for stable release");
+		} else {
+			logger.log("Fragments preserved for pre-release version");
+		}
 
 		// Stage changes
 		try {
 			execSync(`git add "${VERSION_MDX_PATH}"`);
-			if (fragmentsToDelete.size > 0) {
+			if (isStableRelease && fragmentsToDelete.size > 0) {
 				for (const fragmentFile of fragmentsToDelete) {
 					try {
 						execSync(`git add "${fragmentFile}"`);

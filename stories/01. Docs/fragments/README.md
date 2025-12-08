@@ -15,7 +15,6 @@ Create `.mdx` files in this directory with optional frontmatter metadata:
 ```mdx
 ---
 component: ComponentName
-summary: Brief summary (optional)
 ---
 
 Your detailed changelog content goes here.
