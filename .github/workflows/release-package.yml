@@ -1,16 +1,10 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: 'Release type'
-        required: true
-        default: 'pre-release'
-        type: choice
-        options:
-        - release
-        - pre-release
+  push:
+    branches:
+      - main
+      - test
 
 jobs:
   build:
