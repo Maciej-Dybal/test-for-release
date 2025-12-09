@@ -38,6 +38,7 @@ export const Header = ({
 					</g>
 				</svg>
 				<h1>Acme</h1>
+				<h2>Component Library</h2>
 			</div>
 			<div>
 				{user ? (
