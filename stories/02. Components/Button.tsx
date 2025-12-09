@@ -30,6 +30,7 @@ export const Button = ({
 			className={["storybook-button", `storybook-button--${size}`, mode].join(
 				" ",
 			)}
+			title="title"
 			style={{ backgroundColor }}
 			aria-label={label}
 			{...props}
