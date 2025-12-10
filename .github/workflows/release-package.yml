@@ -32,9 +32,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: |
-      (github.event.inputs.release_type == 'release' && github.ref == 'refs/heads/main') ||
-      (github.event.inputs.release_type == 'pre-release' && github.ref == 'refs/heads/test')
     permissions:
       contents: write
       packages: write
